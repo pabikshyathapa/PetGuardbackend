@@ -11,7 +11,7 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const userRoutes = require("./routes/userRoutes")
-
+const sheltersRoutes= require("./routes/Shelter/shelterRoutes")
 
 const PORT = process.env.PORT || 5050;
 const userRoute = require('./routes/userRoutes')
@@ -22,7 +22,9 @@ app.listen(PORT, () => {
 
 // CONNECT DATABASE
 connectDB();
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", userRoutes)
+app.use("/api/shelters", sheltersRoutes);
 
 
 module.exports = app;
