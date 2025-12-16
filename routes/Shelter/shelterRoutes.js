@@ -33,7 +33,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../../middlewares/upload");
 const { authenticateUser, authorizeRoles } = require("../../middlewares/authorizedUser");
-const { createOrUpdateShelter, getMyShelter, getAllShelters } = require("../../controllers/Shelter/controllerShelter");
+const { createOrUpdateShelter, getMyShelter, getAllShelters, getShelterById } = require("../../controllers/Shelter/controllerShelter");
 
 // For multiple file uploads
 router.post(
@@ -49,6 +49,8 @@ router.post(
 
 router.get("/me", authenticateUser, authorizeRoles("shelter"), getMyShelter);
 router.get("/", getAllShelters);
+router.get("/:id", getShelterById);
+
 
 module.exports = router;
 
