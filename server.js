@@ -12,6 +12,7 @@ app.use(express.json());
 
 const userRoutes = require("./routes/userRoutes")
 const sheltersRoutes= require("./routes/Shelter/shelterRoutes")
+const petprofileRoutes=require("./routes/petProfileRoutes")
 
 const PORT = process.env.PORT || 5050;
 const userRoute = require('./routes/userRoutes')
@@ -24,7 +25,9 @@ app.listen(PORT, () => {
 connectDB();
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", userRoutes)
-app.use("/api/shelters", sheltersRoutes);
+app.use("/api/shelters", sheltersRoutes)
+app.use("/api/pets",petprofileRoutes)
+
 
 
 module.exports = app;
