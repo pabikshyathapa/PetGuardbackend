@@ -79,10 +79,20 @@ const userSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+     favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Shelter",
+      },
+    ],
 
     filepath: { type: String },
   },
   { timestamps: true }
+
+  
 );
+
+
 
 module.exports = mongoose.model("User", userSchema);
