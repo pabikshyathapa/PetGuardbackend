@@ -157,5 +157,62 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+// GET LOGGED-IN USER
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    console.error("Get profile error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Both passwords are required",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Old password is incorrect",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+
 
 

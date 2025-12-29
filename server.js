@@ -15,6 +15,8 @@ const petprofileRoutes=require("./routes/petProfileRoutes")
 const ratingreviewRoutes=require("./routes/ratingreviewRoutes")
 const favoriteRoutes=require("./routes/favouritesRoutes")
 const notificationRoutes=require("./routes/Shelter/notificationRoutes")
+const bookingRoutes=require("./routes/bookingRoutes")
+
 
 const PORT = process.env.PORT || 5050;
 const userRoute = require('./routes/userRoutes')
@@ -31,6 +33,6 @@ app.use("/api/pets",petprofileRoutes)
 app.use("/api/reviews", ratingreviewRoutes);
 app.use("/api/favorites",favoriteRoutes)
 app.use("/api/notifications",notificationRoutes)
-
+app.use("/api/bookings",bookingRoutes)
 
 module.exports = app;

@@ -1,34 +1,4 @@
 const User = require("../models/User");
-
-/**
- * CREATE PET PROFILE
- */
-// exports.createPet = async (req, res) => {
-//   try {
-//     // Make sure pets array exists
-//     if (!req.user.pets) req.user.pets = [];
-
-//     const newPet = {
-//       ...req.body,
-//       photo: req.file ? req.file.filename : null,
-//       createdAt: new Date(),
-//     };
-
-//     req.user.pets.push(newPet);
-//     req.user.petCount = req.user.pets.length;
-
-//     await req.user.save();
-
-//     res.status(201).json({
-//       message: "Pet profile created",
-//       pets: req.user.pets,
-//       petCount: req.user.petCount,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 exports.createPet = async (req, res) => {
   try {
     if (!req.user.pets) req.user.pets = [];
@@ -89,28 +59,6 @@ exports.getPetById = async (req, res) => {
   }
 };
 
-/**
- * UPDATE PET
- */
-// exports.updatePet = async (req, res) => {
-//   try {
-//     const pet = req.user.pets.id(req.params.id);
-//     if (!pet) return res.status(404).json({ message: "Pet not found" });
-
-//     // Update fields
-//     Object.assign(pet, req.body);
-
-//     // Update photo if uploaded
-//     if (req.file) pet.photo = req.file.filename;
-
-//     await req.user.save();
-
-//     res.json({ message: "Pet profile updated", pet });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 exports.updatePet = async (req, res) => {
   try {
     const pet = req.user.pets.id(req.params.id);
@@ -125,19 +73,31 @@ exports.updatePet = async (req, res) => {
       }
     }
 
-    // Update other fields
-    const fieldsToUpdate = { ...req.body };
-    delete fieldsToUpdate.emergencyContact; // already handled
-    delete fieldsToUpdate.photo; // photo handled separately
-    Object.assign(pet, fieldsToUpdate);
+    // Handle characteristics array
+    if (req.body.characteristics) {
+      if (Array.isArray(req.body.characteristics)) {
+        pet.characteristics = req.body.characteristics;
+      } else if (typeof req.body.characteristics === "string") {
+        pet.characteristics = req.body.characteristics
+          .split(",")
+          .map((i) => i.trim())
+          .filter(Boolean);
+      }
+    }
+
+    // Update other allowed fields
+    const allowedFields = ["petName", "location", "type", "breed", "gender", "age", "weight", "health"];
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) pet[field] = req.body[field];
+    });
 
     // Update photo if uploaded
     if (req.file) pet.photo = req.file.filename;
 
     await req.user.save();
-
     res.json({ message: "Pet profile updated", pet });
   } catch (error) {
+    console.error("UPDATE PET ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -148,15 +108,21 @@ exports.updatePet = async (req, res) => {
 exports.deletePet = async (req, res) => {
   try {
     const pet = req.user.pets.id(req.params.id);
-    if (!pet) return res.status(404).json({ message: "Pet not found" });
+    if (!pet) {
+      return res.status(404).json({ message: "Pet not found" });
+    }
 
-    pet.remove(); // remove pet from array
+    req.user.pets.pull(req.params.id);
+
     req.user.petCount = req.user.pets.length;
-
     await req.user.save();
 
-    res.json({ message: "Pet profile deleted", petCount: req.user.petCount });
+    res.json({
+      message: "Pet profile deleted",
+      petCount: req.user.petCount,
+    });
   } catch (error) {
+    console.error("DELETE PET ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };

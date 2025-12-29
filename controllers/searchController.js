@@ -2,66 +2,44 @@ const Shelter = require("../models/Shelter/shelter");
 
 exports.searchShelters = async (req, res) => {
   try {
-    const {
-      name,
-      location,
-      petType,
-      petCount,
-      startDate,
-      endDate,
-      searchType, // "boarding" or "daycare"
-    } = req.query;
+    const { name, location, minPrice, maxPrice, service } = req.query;
 
-    let query = {
-      status: "available", // only show available shelters
-    };
-     if (name) {
-      query.name = { $regex: name, $options: "i" }; // case-insensitive match
+    let query = {};
+
+    if (name) {
+      query.name = { $regex: name.trim(), $options: "i" };
     }
 
-    // Location filter (optional)
     if (location) {
-      query.location = { $regex: location, $options: "i" };
+      query.location = { $regex: location.trim(), $options: "i" };
     }
 
-    // Pet type filter (optional)
-    if (petType) {
-      query.services = { $in: [petType] }; // optional if you store pet types
+    if (minPrice || maxPrice) {
+      query.pricePerDay = {};
+      if (minPrice) query.pricePerDay.$gte = Number(minPrice);
+      if (maxPrice) query.pricePerDay.$lte = Number(maxPrice);
     }
 
-    // Service filter based on search type
-    if (searchType === "boarding") {
-      query.services = { $in: ["boarding", "both"] };
-      // Boarding has from-to date
-      if (!startDate || !endDate) {
-        return res.status(400).json({ message: "From and To dates required for boarding" });
-      }
-    } else if (searchType === "daycare") {
-      query.services = { $in: ["daycare", "both"] };
-      if (!startDate) {
-        return res.status(400).json({ message: "Date required for daycare" });
-      }
-    } else {
-      return res.status(400).json({ message: "Invalid search type" });
+    if (service) {
+      const servicesArray = service.split(",").map((s) => s.trim());
+      query.services = { $in: servicesArray };
     }
 
-    const shelters = await Shelter.find(query).sort({ createdAt: -1 });
+    const shelters = await Shelter.find(query)
+      .sort({ averageRating: -1 })
+      .populate("user", "name email");
 
     res.status(200).json({
+      success: true,
       count: shelters.length,
-      filters: {
-        name,
-        location,
-        petType,
-        petCount,
-        startDate,
-        endDate,
-        searchType,
-      },
-      shelters,
+      data: shelters,
     });
   } catch (error) {
-    console.error("Shelter search error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Search shelters error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Shelter fetch failed",
+      error: error.message,
+    });
   }
 };
