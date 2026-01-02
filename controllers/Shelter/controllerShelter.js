@@ -1,19 +1,16 @@
 const Shelter = require("../../models/Shelter/shelter");
 
-// CREATE OR UPDATE SHELTER
+// CREATE/UPDATE SHELTER
 exports.createOrUpdateShelter = async (req, res) => {
   try {
     const { name, location, contact, description, services, status, pricePerDay } = req.body;
 
-    // Photos & documents uploaded
     const newPhotos = req.files?.photos?.map((f) => f.filename) || [];
     const newDocuments = req.files?.documents?.map((f) => f.filename) || [];
 
-    // Parse removed files
     const removedPhotosArr = req.body.removedPhotos ? JSON.parse(req.body.removedPhotos) : [];
     const removedDocumentsArr = req.body.removedDocuments ? JSON.parse(req.body.removedDocuments) : [];
 
-    // Prepare shelter data
     const shelterData = {
       user: req.user._id,
       name,
@@ -36,11 +33,9 @@ exports.createOrUpdateShelter = async (req, res) => {
       shelter.photos = shelter.photos.filter((p) => !removedPhotosArr.includes(p));
       shelter.documents = shelter.documents.filter((d) => !removedDocumentsArr.includes(d));
 
-      // Add newly uploaded files
       shelter.photos.push(...newPhotos);
       shelter.documents.push(...newDocuments);
 
-      // Ensure reviews array exists
       shelter.reviews = shelter.reviews || [];
       shelter.reviewCount = shelter.reviewCount || 0;
       shelter.averageRating = shelter.averageRating || 0;
