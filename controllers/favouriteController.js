@@ -67,7 +67,6 @@ exports.getFavorites = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Populate favorites with shelter details
     const user = await User.findById(userId).populate({
       path: "favorites",
       select: "name location contact description services status pricePerDay photos averageRating reviewCount",
