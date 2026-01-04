@@ -51,7 +51,15 @@ const userSchema = new mongoose.Schema(
     ],
 
     filepath: { type: String },
+     resetPasswordToken: {
+      type: String,
+    },
+
+    resetPasswordExpires: {
+      type: Date,
+    },
   },
+  
   { timestamps: true }
 
   
