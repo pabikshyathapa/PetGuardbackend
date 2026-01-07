@@ -12,14 +12,14 @@
 //   // CRITICAL: Must be in this exact order with no spaces
 //   const dataString = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
   
-//   console.log("🔐 Generating signature for:", dataString);
+//   console.log(" Generating signature for:", dataString);
   
 //   const signature = crypto
 //     .createHmac("sha256", secret)
 //     .update(dataString)
 //     .digest("base64");
     
-//   console.log("✅ Generated signature:", signature);
+//   console.log(" Generated signature:", signature);
   
 //   return signature;
 // };
@@ -33,7 +33,7 @@
 //       .map(field => `${field}=${decoded[field]}`)
 //       .join(',');
     
-//     console.log("🔐 Signature data string:", signatureData);
+//     console.log("Signature data string:", signatureData);
     
 //     const generatedSignature = crypto
 //       .createHmac('sha256', process.env.ESEWA_SECRET_KEY)
@@ -42,14 +42,14 @@
     
 //     const isValid = generatedSignature === decoded.signature;
     
-//     console.log("🔍 Verifying signature:");
+//     console.log(" Verifying signature:");
 //     console.log("   Expected:", generatedSignature);
 //     console.log("   Received:", decoded.signature);
 //     console.log("   Valid:", isValid);
     
 //     return isValid;
 //   } catch (error) {
-//     console.error("❌ Signature verification error:", error);
+//     console.error("Signature verification error:", error);
 //     return false;
 //   }
 // };
@@ -61,7 +61,7 @@
 //       ? 'https://esewa.com.np/api/epay/transaction/status/'
 //       : 'https://rc.esewa.com.np/api/epay/transaction/status/';
     
-//     console.log("📡 Checking payment status:", { product_code, total_amount, transaction_uuid });
+//     console.log(" Checking payment status:", { product_code, total_amount, transaction_uuid });
     
 //     const response = await axios.get(statusUrl, {
 //       params: {
@@ -71,11 +71,11 @@
 //       }
 //     });
     
-//     console.log("✅ eSewa status response:", response.data);
+//     console.log(" eSewa status response:", response.data);
     
 //     return response.data;
 //   } catch (error) {
-//     console.error("❌ Error checking eSewa status:", error.message);
+//     console.error(" Error checking eSewa status:", error.message);
 //     return null;
 //   }
 // };
@@ -85,7 +85,7 @@
 //     const { shelterId, serviceType, startDate, endDate, pets, pricePerDay, paymentMethod } = req.body;
 //     const petOwnerId = req.user.id;
 
-//     console.log("📝 Creating booking:", {
+//     console.log("Creating booking:", {
 //       shelterId,
 //       serviceType,
 //       petOwnerId,
@@ -95,8 +95,14 @@
 
 //     // Validate input
 //     if (!shelterId || !serviceType || !startDate || !pets || !pets.length || !pricePerDay || !paymentMethod) {
-//       console.error("❌ Missing required fields");
+//       console.error(" Missing required fields");
 //       return res.status(400).json({ message: "Missing required fields" });
+//     }
+
+//     // FETCH THE SHELTER TO GET THE OWNER'S USER ID
+//     const shelter = await Shelter.findById(shelterId);
+//     if (!shelter) {
+//       return res.status(404).json({ message: "Shelter not found" });
 //     }
 
 //     // Calculate Costs
@@ -105,7 +111,7 @@
 //     const totalDays = serviceType === "daycare" ? 1 : Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 //     const totalAmountValue = totalDays * pricePerDay * pets.length;
     
-//     console.log("💰 Calculated cost:", { totalDays, pricePerDay, petCount: pets.length, totalAmountValue });
+//     console.log("Calculated cost:", { totalDays, pricePerDay, petCount: pets.length, totalAmountValue });
 
 //     // Create Pending Booking
 //     const booking = await Booking.create({
@@ -125,16 +131,19 @@
 //       },
 //     });
     
+//     // FIXED: Use shelter.user instead of shelterId
+//     const petOwner = await User.findById(petOwnerId).select("name");
 //     await Notification.create({
-//       user: shelterId,
-//       message: `New booking received (${serviceType}) for ${pets.length} pet(s)`
+//       user: shelter.user,
+//       message: `New booking received from ${petOwner.name} (${serviceType}) for ${pets.length} pet(s)`
 //     });
+    
 //     await Notification.create({
-//   user: petOwnerId,
-//   message: "Your booking has been confirmed. Please pay at the shelter."
-// });
+//       user: petOwnerId,
+//       message: "Your booking has been confirmed!"
+//     });
 
-//     console.log("✅ Booking created:", booking._id);
+//     console.log("Booking created:", booking._id);
 
 //     // Handle eSewa Redirect
 //     if (paymentMethod === "esewa") {
@@ -142,7 +151,7 @@
 //       const transactionId = booking._id.toString();
 //       const productCode = process.env.ESEWA_PRODUCT_CODE;
       
-//       console.log("💳 eSewa Payment Details:");
+//       console.log("eSewa Payment Details:");
 //       console.log("   Amount:", totalAmount);
 //       console.log("   Transaction ID:", transactionId);
 //       console.log("   Product Code:", productCode);
@@ -164,7 +173,7 @@
 //         esewa_url: process.env.ESEWA_URL
 //       };
 
-//       console.log("📤 Sending payment data to frontend");
+//       console.log("Sending payment data to frontend");
 
 //       return res.status(201).json({
 //         success: true,
@@ -175,14 +184,14 @@
 //     }
 
 //     // Cash payment - immediately confirm
-//     console.log("💵 Cash booking confirmed");
+//     console.log("Cash booking confirmed");
 //     res.status(201).json({ 
 //       success: true, 
 //       message: "Booking confirmed (Cash on arrival)", 
 //       booking 
 //     });
 //   } catch (error) {
-//     console.error("❌ Booking Error:", error);
+//     console.error("Booking Error:", error);
 //     res.status(500).json({ 
 //       message: "Booking failed", 
 //       error: error.message 
@@ -195,11 +204,11 @@
 //   try {
 //     const { data } = req.query;
     
-//     console.log("🔔 eSewa callback received");
+//     console.log("eSewa callback received");
 //     console.log("   Query params:", req.query);
     
 //     if (!data) {
-//       console.error("❌ No data parameter in callback");
+//       console.error(" No data parameter in callback");
 //       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=no_data`);
 //     }
 
@@ -207,9 +216,9 @@
 //     let decoded;
 //     try {
 //       decoded = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
-//       console.log("📦 Decoded eSewa response:", decoded);
+//       console.log("Decoded eSewa response:", decoded);
 //     } catch (decodeError) {
-//       console.error("❌ Failed to decode eSewa response:", decodeError);
+//       console.error("Failed to decode eSewa response:", decodeError);
 //       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=decode_failed`);
 //     }
 
@@ -217,16 +226,16 @@
 //     const isValidSignature = verifyEsewaSignature(decoded);
 
 //     if (!isValidSignature) {
-//       console.error("⚠️ Invalid signature detected!");
+//       console.error("Invalid signature detected!");
 //       // OPTIONAL: For testing, you can skip this check
 //       // return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=invalid_signature`);
-//       console.warn("⚠️ Proceeding despite invalid signature (TEST MODE)");
+//       console.warn("Proceeding despite invalid signature (TEST MODE)");
 //     } else {
-//       console.log("✅ Signature verified successfully");
+//       console.log("Signature verified successfully");
 //     }
 
 //     if (decoded.status === "COMPLETE") {
-//       // Update booking status
+//       // POPULATE shelter to get the user field
 //       const booking = await Booking.findByIdAndUpdate(
 //         decoded.transaction_uuid,
 //         {
@@ -234,34 +243,34 @@
 //           "payment.transactionId": decoded.transaction_code,
 //         },
 //         { new: true }
-//       );
-//       //  Notify pet owner
-//   await Notification.create({
-//     user: booking.petOwner,
-//     message: "Your payment was successful. Booking confirmed!"
-//   });
-
-//   //  Notify shelter
-//   await Notification.create({
-//     user: booking.shelter,
-//     message: "A booking payment has been completed."
-//   });
+//       ).populate('shelter');
 
 //       if (!booking) {
-//         console.error("❌ Booking not found:", decoded.transaction_uuid);
+//         console.error("Booking not found:", decoded.transaction_uuid);
 //         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=booking_not_found`);
 //       }
 
-//       console.log("✅ Payment verified! Booking updated:", booking._id);
+//       // FIXED: Use shelter.user instead of booking.shelter
+//       await Notification.create({
+//         user: booking.petOwner,
+//         message: "Your payment was successful. Booking confirmed!"
+//       });
+
+//       await Notification.create({
+//         user: booking.shelter.user,
+//         message: "A booking payment has been completed."
+//       });
+
+//       console.log("Payment verified! Booking updated:", booking._id);
 
 //       // FIXED: Redirect to the correct frontend route
 //       return res.redirect(`${process.env.FRONTEND_URL}/payment-success?status=success&ref=${decoded.transaction_code}`);
 //     }
     
-//     console.warn("⚠️ Payment not complete. Status:", decoded.status);
+//     console.warn(" Payment not complete. Status:", decoded.status);
 //     res.redirect(`${process.env.FRONTEND_URL}/payment-failed?status=${decoded.status}`);
 //   } catch (err) {
-//     console.error("❌ Verification Error:", err);
+//     console.error(" Verification Error:", err);
 //     res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=verification_failed`);
 //   }
 // };
@@ -271,7 +280,7 @@
 //   try {
 //     const { bookingId } = req.params;
     
-//     console.log("🔍 Manual status check for booking:", bookingId);
+//     console.log(" Manual status check for booking:", bookingId);
     
 //     const booking = await Booking.findById(bookingId);
     
@@ -306,7 +315,7 @@
 //       booking.payment.transactionId = esewaStatus.ref_id;
 //       await booking.save();
       
-//       console.log("✅ Payment verified via manual check");
+//       console.log("Payment verified via manual check");
       
 //       return res.json({
 //         status: "paid",
@@ -324,7 +333,7 @@
 //     });
 
 //   } catch (error) {
-//     console.error("❌ Status check error:", error);
+//     console.error("Status check error:", error);
 //     res.status(500).json({ 
 //       message: "Failed to check payment status",
 //       error: error.message 
@@ -336,7 +345,8 @@
 //   try {
 //     const { bookingId } = req.params;
     
-//     const booking = await Booking.findById(bookingId);
+//     //  POPULATE shelter to get the user field
+//     const booking = await Booking.findById(bookingId).populate('shelter');
     
 //     if (!booking) {
 //       return res.status(404).json({ message: "Booking not found" });
@@ -362,13 +372,13 @@
 //     booking.payment.status = "cancelled";
 //     await booking.save();
 
-// // 🔔 Notify shelter
-// await Notification.create({
-//   user: booking.shelter,
-//   message: "A pending booking payment was cancelled."
-// });
+//     //  FIXED: Use shelter.user instead of booking.shelter
+//     await Notification.create({
+//       user: booking.shelter.user,
+//       message: "A pending booking payment was cancelled."
+//     });
 
-//     console.log("❌ Pending payment cancelled:", bookingId);
+//     console.log("Pending payment cancelled:", bookingId);
 
 //     res.json({ 
 //       message: "Pending payment cancelled successfully",
@@ -376,7 +386,7 @@
 //     });
 
 //   } catch (error) {
-//     console.error("❌ Cancel error:", error);
+//     console.error(" Cancel error:", error);
 //     res.status(500).json({ message: "Failed to cancel booking" });
 //   }
 // };
@@ -417,7 +427,11 @@
 
 // exports.cancelBooking = async (req, res) => {
 //   try {
-//     const booking = await Booking.findById(req.params.id);
+//     // POPULATE shelter to get the user field
+//     const booking = await Booking.findById(req.params.id)
+//     .populate('shelter')
+//     .populate("petOwner", "name");
+    
 //     if (!booking) return res.status(404).json({ message: "Booking not found" });
     
 //     if (booking.payment.status === "paid") {
@@ -428,19 +442,19 @@
     
 //     booking.bookingStatus = "cancelled";
 //     await booking.save();
-//        // 🔔 Notify shelter
-// await Notification.create({
-//   user: booking.shelter,
-//   message: "A booking has been cancelled by the pet owner."
-// });
-
-// // 🔔 Notify pet owner
-// await Notification.create({
-//   user: booking.petOwner,
-//   message: "Your booking has been cancelled successfully."
-// });
     
-//     console.log("❌ Booking cancelled:", booking._id);
+//     // FIXED: Use shelter.user instead of booking.shelter
+//     await Notification.create({
+//       user: booking.shelter.user,
+//       message: `Booking cancelled by ${booking.petOwner.name}.`
+//     });
+
+//     await Notification.create({
+//       user: booking.petOwner,
+//       message: "Your booking has been cancelled successfully."
+//     });
+    
+//     console.log(" Booking cancelled:", booking._id);
     
 //     res.json({ message: "Booking cancelled successfully" });
 //   } catch (error) {
@@ -482,9 +496,9 @@
 //     await booking.save();
 
 //     await Notification.create({
-//   user: booking.petOwner,
-//   message: "Your cash payment has been marked as paid."
-// });
+//       user: booking.petOwner,
+//       message: "Your cash payment has been marked as paid."
+//     });
 
 //     res.json({ success: true, message: "Payment marked as paid", booking });
 //   } catch (err) {
@@ -513,9 +527,36 @@
 //       user: booking.petOwner,
 //       message: "Your booking has been completed. Thank you!"
 //     });    
+    
 //     res.json({ message: "Booking marked as completed", booking });
 //   } catch (error) {
 //     res.status(500).json({ message: "Failed to complete booking" });
+//   }
+// };
+// // Get booking history for pet owner
+// exports.getBookingHistory = async (req, res) => {
+//   try {
+//     const bookings = await Booking.find({ petOwner: req.user.id })
+//       .populate("shelter", "name location contact")
+//       .sort({ createdAt: -1 });
+
+//     const now = new Date();
+
+//     const history = bookings.map((booking) => {
+//       const createdAt = new Date(booking.createdAt);
+//       const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60); // difference in hours
+//       const canCancel = hoursSinceBooking <= 24 && booking.payment.status !== "paid" && booking.bookingStatus !== "cancelled";
+
+//       return {
+//         ...booking._doc,
+//         canCancel,
+//       };
+//     });
+
+//     res.status(200).json({ success: true, bookings: history });
+//   } catch (error) {
+//     console.error("Failed to fetch booking history:", error);
+//     res.status(500).json({ message: "Failed to fetch booking history" });
 //   }
 // };
 
@@ -529,8 +570,6 @@ const Notification = require("../models/notification");
 // Generate eSewa Signature
 const generateEsewaSignature = (total_amount, transaction_uuid, product_code) => {
   const secret = process.env.ESEWA_SECRET_KEY;
-  
-  // CRITICAL: Must be in this exact order with no spaces
   const dataString = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
   
   console.log(" Generating signature for:", dataString);
@@ -540,15 +579,13 @@ const generateEsewaSignature = (total_amount, transaction_uuid, product_code) =>
     .update(dataString)
     .digest("base64");
     
-  console.log(" Generated signature:", signature);
-  
+  console.log("Generated signature:", signature);
   return signature;
 };
 
-// Verify eSewa Signature - FIXED VERSION
+// Verify eSewa Signature
 const verifyEsewaSignature = (decoded) => {
   try {
-    // Use the signed_field_names from eSewa to build signature string
     const signedFieldNames = decoded.signed_field_names.split(',');
     const signatureData = signedFieldNames
       .map(field => `${field}=${decoded[field]}`)
@@ -563,14 +600,14 @@ const verifyEsewaSignature = (decoded) => {
     
     const isValid = generatedSignature === decoded.signature;
     
-    console.log(" Verifying signature:");
+    console.log("🔍 Verifying signature:");
     console.log("   Expected:", generatedSignature);
     console.log("   Received:", decoded.signature);
     console.log("   Valid:", isValid);
     
     return isValid;
   } catch (error) {
-    console.error("Signature verification error:", error);
+    console.error("❌ Signature verification error:", error);
     return false;
   }
 };
@@ -582,59 +619,94 @@ const checkEsewaPaymentStatus = async (product_code, total_amount, transaction_u
       ? 'https://esewa.com.np/api/epay/transaction/status/'
       : 'https://rc.esewa.com.np/api/epay/transaction/status/';
     
-    console.log(" Checking payment status:", { product_code, total_amount, transaction_uuid });
+    console.log("📡 Checking payment status:", { product_code, total_amount, transaction_uuid });
     
     const response = await axios.get(statusUrl, {
-      params: {
-        product_code,
-        total_amount,
-        transaction_uuid
-      }
+      params: { product_code, total_amount, transaction_uuid }
     });
     
-    console.log(" eSewa status response:", response.data);
-    
+    console.log("✅ eSewa status response:", response.data);
     return response.data;
   } catch (error) {
-    console.error(" Error checking eSewa status:", error.message);
+    console.error("❌ Error checking eSewa status:", error.message);
     return null;
   }
 };
 
+// ✅ CREATE BOOKING WITH ROOM ASSIGNMENTS
 exports.createBooking = async (req, res) => {
   try {
-    const { shelterId, serviceType, startDate, endDate, pets, pricePerDay, paymentMethod } = req.body;
+    const { 
+      shelterId, 
+      serviceType, 
+      startDate, 
+      endDate, 
+      pets, 
+      pricePerDay, 
+      paymentMethod,
+      roomAssignments // ✅ NEW: Room assignments
+    } = req.body;
     const petOwnerId = req.user.id;
 
-    console.log("Creating booking:", {
+    console.log("📝 Creating booking:", {
       shelterId,
       serviceType,
       petOwnerId,
       petCount: pets?.length,
-      paymentMethod
+      paymentMethod,
+      roomAssignments
     });
 
-    // Validate input
+    // Validate required fields
     if (!shelterId || !serviceType || !startDate || !pets || !pets.length || !pricePerDay || !paymentMethod) {
-      console.error(" Missing required fields");
+      console.error("❌ Missing required fields");
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // FETCH THE SHELTER TO GET THE OWNER'S USER ID
+    // ✅ Validate room assignments
+    if (!roomAssignments || roomAssignments.length === 0) {
+      return res.status(400).json({ message: "Room assignments are required" });
+    }
+
+    if (roomAssignments.length !== pets.length) {
+      return res.status(400).json({ 
+        message: `Each pet must be assigned to a room. Expected ${pets.length} assignments, got ${roomAssignments.length}` 
+      });
+    }
+
+    // Fetch shelter
     const shelter = await Shelter.findById(shelterId);
     if (!shelter) {
       return res.status(404).json({ message: "Shelter not found" });
     }
 
-    // Calculate Costs
+    // ✅ Validate rooms exist and are available
+    const selectedRoomNumbers = roomAssignments.map(r => r.roomNumber);
+    const uniqueRooms = [...new Set(selectedRoomNumbers)];
+    
+    if (uniqueRooms.length !== selectedRoomNumbers.length) {
+      return res.status(400).json({ message: "Cannot assign multiple pets to the same room" });
+    }
+
+    for (const roomNum of selectedRoomNumbers) {
+      const room = shelter.rooms.find(r => r.roomNumber === roomNum);
+      if (!room) {
+        return res.status(400).json({ message: `Room ${roomNum} does not exist` });
+      }
+      if (room.status === "booked") {
+        return res.status(400).json({ message: `Room ${roomNum} is already booked` });
+      }
+    }
+
+    // Calculate costs
     const start = new Date(startDate);
     const end = new Date(endDate || startDate);
     const totalDays = serviceType === "daycare" ? 1 : Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
     const totalAmountValue = totalDays * pricePerDay * pets.length;
     
-    console.log("Calculated cost:", { totalDays, pricePerDay, petCount: pets.length, totalAmountValue });
+    console.log("💰 Calculated cost:", { totalDays, pricePerDay, petCount: pets.length, totalAmountValue });
 
-    // Create Pending Booking
+    // Create booking
     const booking = await Booking.create({
       petOwner: petOwnerId,
       shelter: shelterId,
@@ -650,29 +722,53 @@ exports.createBooking = async (req, res) => {
         method: paymentMethod,
         status: "pending",
       },
+      roomAssignments, // ✅ Store room assignments
     });
-    
-    // FIXED: Use shelter.user instead of shelterId
+
+    // ✅ UPDATE SHELTER ROOMS TO BOOKED STATUS
+    for (const assignment of roomAssignments) {
+      const room = shelter.rooms.find(r => r.roomNumber === assignment.roomNumber);
+      if (room) {
+        room.status = "booked";
+        room.bookedPet = {
+          petId: booking._id,
+          petName: assignment.petName,
+          petImage: assignment.petPhoto,
+          ownerId: petOwnerId,
+        };
+      }
+    }
+
+    // ✅ Update shelter status if all rooms are booked
+    const availableRooms = shelter.rooms.filter(r => r.status === "available");
+    if (availableRooms.length === 0) {
+      shelter.status = "unavailable";
+    }
+
+    await shelter.save();
+    console.log(`✅ Updated ${selectedRoomNumbers.length} room(s) to booked status`);
+
+    // Send notifications
     const petOwner = await User.findById(petOwnerId).select("name");
     await Notification.create({
       user: shelter.user,
-      message: `New booking received from ${petOwner.name} (${serviceType}) for ${pets.length} pet(s)`
+      message: `New booking from ${petOwner.name}: ${pets.length} pet in room ${selectedRoomNumbers.join(", ")}`
     });
     
     await Notification.create({
       user: petOwnerId,
-      message: "Your booking has been confirmed!"
+      message: `Booking confirmed! Your pet assigned to room ${selectedRoomNumbers.join(", ")}`
     });
 
-    console.log("Booking created:", booking._id);
+    console.log("✅ Booking created:", booking._id);
 
-    // Handle eSewa Redirect
+    // Handle eSewa payment
     if (paymentMethod === "esewa") {
       const totalAmount = Math.round(totalAmountValue).toString();
       const transactionId = booking._id.toString();
       const productCode = process.env.ESEWA_PRODUCT_CODE;
       
-      console.log("eSewa Payment Details:");
+      console.log("💳 eSewa Payment Details:");
       console.log("   Amount:", totalAmount);
       console.log("   Transaction ID:", transactionId);
       console.log("   Product Code:", productCode);
@@ -694,8 +790,6 @@ exports.createBooking = async (req, res) => {
         esewa_url: process.env.ESEWA_URL
       };
 
-      console.log("Sending payment data to frontend");
-
       return res.status(201).json({
         success: true,
         bookingId: booking._id,
@@ -704,15 +798,15 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Cash payment - immediately confirm
-    console.log("Cash booking confirmed");
+    // Cash payment
+    console.log("💵 Cash booking confirmed");
     res.status(201).json({ 
       success: true, 
       message: "Booking confirmed (Cash on arrival)", 
       booking 
     });
   } catch (error) {
-    console.error("Booking Error:", error);
+    console.error("❌ Booking Error:", error);
     res.status(500).json({ 
       message: "Booking failed", 
       error: error.message 
@@ -720,43 +814,38 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// FIXED: eSewa Payment Verification
+// ✅ VERIFY ESEWA PAYMENT
 exports.verifyEsewaPayment = async (req, res) => {
   try {
     const { data } = req.query;
     
-    console.log("eSewa callback received");
+    console.log("🔔 eSewa callback received");
     console.log("   Query params:", req.query);
     
     if (!data) {
-      console.error(" No data parameter in callback");
+      console.error("❌ No data parameter in callback");
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=no_data`);
     }
 
-    // Decode the Base64 response
     let decoded;
     try {
       decoded = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
-      console.log("Decoded eSewa response:", decoded);
+      console.log("📦 Decoded eSewa response:", decoded);
     } catch (decodeError) {
-      console.error("Failed to decode eSewa response:", decodeError);
+      console.error("❌ Failed to decode eSewa response:", decodeError);
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=decode_failed`);
     }
 
-    // Verify signature for security
     const isValidSignature = verifyEsewaSignature(decoded);
 
     if (!isValidSignature) {
-      console.error("Invalid signature detected!");
-      // OPTIONAL: For testing, you can skip this check
-      // return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=invalid_signature`);
-      console.warn("Proceeding despite invalid signature (TEST MODE)");
+      console.error("⚠️ Invalid signature detected!");
+      console.warn("⚠️ Proceeding despite invalid signature (TEST MODE)");
     } else {
-      console.log("Signature verified successfully");
+      console.log("✅ Signature verified successfully");
     }
 
     if (decoded.status === "COMPLETE") {
-      // POPULATE shelter to get the user field
       const booking = await Booking.findByIdAndUpdate(
         decoded.transaction_uuid,
         {
@@ -767,11 +856,10 @@ exports.verifyEsewaPayment = async (req, res) => {
       ).populate('shelter');
 
       if (!booking) {
-        console.error("Booking not found:", decoded.transaction_uuid);
+        console.error("❌ Booking not found:", decoded.transaction_uuid);
         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=booking_not_found`);
       }
 
-      // FIXED: Use shelter.user instead of booking.shelter
       await Notification.create({
         user: booking.petOwner,
         message: "Your payment was successful. Booking confirmed!"
@@ -782,26 +870,25 @@ exports.verifyEsewaPayment = async (req, res) => {
         message: "A booking payment has been completed."
       });
 
-      console.log("Payment verified! Booking updated:", booking._id);
+      console.log("✅ Payment verified! Booking updated:", booking._id);
 
-      // FIXED: Redirect to the correct frontend route
       return res.redirect(`${process.env.FRONTEND_URL}/payment-success?status=success&ref=${decoded.transaction_code}`);
     }
     
-    console.warn(" Payment not complete. Status:", decoded.status);
+    console.warn("⚠️ Payment not complete. Status:", decoded.status);
     res.redirect(`${process.env.FRONTEND_URL}/payment-failed?status=${decoded.status}`);
   } catch (err) {
-    console.error(" Verification Error:", err);
+    console.error("❌ Verification Error:", err);
     res.redirect(`${process.env.FRONTEND_URL}/payment-failed?error=verification_failed`);
   }
 };
 
-// Check payment status manually
+// CHECK PAYMENT STATUS
 exports.checkPaymentStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
     
-    console.log(" Manual status check for booking:", bookingId);
+    console.log("🔍 Manual status check for booking:", bookingId);
     
     const booking = await Booking.findById(bookingId);
     
@@ -836,7 +923,7 @@ exports.checkPaymentStatus = async (req, res) => {
       booking.payment.transactionId = esewaStatus.ref_id;
       await booking.save();
       
-      console.log("Payment verified via manual check");
+      console.log("✅ Payment verified via manual check");
       
       return res.json({
         status: "paid",
@@ -854,7 +941,7 @@ exports.checkPaymentStatus = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Status check error:", error);
+    console.error("❌ Status check error:", error);
     res.status(500).json({ 
       message: "Failed to check payment status",
       error: error.message 
@@ -862,11 +949,11 @@ exports.checkPaymentStatus = async (req, res) => {
   }
 };
 
+// ✅ CANCEL PENDING PAYMENT
 exports.cancelPendingPayment = async (req, res) => {
   try {
     const { bookingId } = req.params;
     
-    //  POPULATE shelter to get the user field
     const booking = await Booking.findById(bookingId).populate('shelter');
     
     if (!booking) {
@@ -893,25 +980,49 @@ exports.cancelPendingPayment = async (req, res) => {
     booking.payment.status = "cancelled";
     await booking.save();
 
-    //  FIXED: Use shelter.user instead of booking.shelter
+    // ✅ RELEASE ROOMS
+    if (booking.roomAssignments && booking.roomAssignments.length > 0) {
+      const shelter = await Shelter.findById(booking.shelter._id);
+      if (shelter) {
+        const bookedRoomNumbers = booking.roomAssignments.map(r => r.roomNumber);
+        
+        for (const roomNum of bookedRoomNumbers) {
+          const room = shelter.rooms.find(r => r.roomNumber === roomNum);
+          if (room && room.bookedPet?.petId?.toString() === booking._id.toString()) {
+            room.status = "available";
+            room.bookedPet = undefined;
+          }
+        }
+
+        const availableRooms = shelter.rooms.filter(r => r.status === "available");
+        if (availableRooms.length > 0 && shelter.status === "unavailable") {
+          shelter.status = "available";
+        }
+
+        await shelter.save();
+        console.log(`✅ Released rooms: ${bookedRoomNumbers.join(", ")}`);
+      }
+    }
+
     await Notification.create({
       user: booking.shelter.user,
-      message: "A pending booking payment was cancelled."
+      message: "A pending booking payment was cancelled. Rooms released."
     });
 
-    console.log("Pending payment cancelled:", bookingId);
+    console.log("❌ Pending payment cancelled:", bookingId);
 
     res.json({ 
-      message: "Pending payment cancelled successfully",
+      message: "Pending payment cancelled successfully. Rooms released.",
       booking 
     });
 
   } catch (error) {
-    console.error(" Cancel error:", error);
+    console.error("❌ Cancel error:", error);
     res.status(500).json({ message: "Failed to cancel booking" });
   }
 };
 
+// GET MY BOOKINGS
 exports.getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ petOwner: req.user.id })
@@ -919,11 +1030,12 @@ exports.getMyBookings = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(bookings);
   } catch (error) {
-    console.error("Failed to fetch bookings:", error);
+    console.error("❌ Failed to fetch bookings:", error);
     res.status(500).json({ message: "Failed to fetch bookings" });
   }
 };
 
+// GET SHELTER BOOKINGS
 exports.getShelterBookings = async (req, res) => {
   try {
     const shelter = await Shelter.findOne({ user: req.user._id });
@@ -936,24 +1048,25 @@ exports.getShelterBookings = async (req, res) => {
       shelter: shelter._id,
     })
       .populate("petOwner", "name email")
-      .populate("pets")
       .sort({ createdAt: -1 });
 
     res.status(200).json(bookings);
   } catch (error) {
-    console.error(error);
+    console.error("❌ Failed to fetch shelter bookings:", error);
     res.status(500).json({ message: "Failed to fetch shelter bookings" });
   }
 };
 
+// ✅ CANCEL BOOKING AND RELEASE ROOMS
 exports.cancelBooking = async (req, res) => {
   try {
-    // POPULATE shelter to get the user field
     const booking = await Booking.findById(req.params.id)
-    .populate('shelter')
-    .populate("petOwner", "name");
+      .populate('shelter')
+      .populate("petOwner", "name");
     
-    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
     
     if (booking.payment.status === "paid") {
       return res.status(400).json({ 
@@ -963,27 +1076,51 @@ exports.cancelBooking = async (req, res) => {
     
     booking.bookingStatus = "cancelled";
     await booking.save();
+
+    // ✅ RELEASE ROOMS
+    if (booking.roomAssignments && booking.roomAssignments.length > 0) {
+      const shelter = await Shelter.findById(booking.shelter._id);
+      if (shelter) {
+        const bookedRoomNumbers = booking.roomAssignments.map(r => r.roomNumber);
+        
+        for (const roomNum of bookedRoomNumbers) {
+          const room = shelter.rooms.find(r => r.roomNumber === roomNum);
+          if (room && room.bookedPet?.petId?.toString() === booking._id.toString()) {
+            room.status = "available";
+            room.bookedPet = undefined;
+          }
+        }
+
+        const availableRooms = shelter.rooms.filter(r => r.status === "available");
+        if (availableRooms.length > 0 && shelter.status === "unavailable") {
+          shelter.status = "available";
+        }
+
+        await shelter.save();
+        console.log(`✅ Released rooms after cancellation: ${bookedRoomNumbers.join(", ")}`);
+      }
+    }
     
-    // FIXED: Use shelter.user instead of booking.shelter
     await Notification.create({
       user: booking.shelter.user,
-      message: `Booking cancelled by ${booking.petOwner.name}.`
+      message: `Booking cancelled by ${booking.petOwner.name}. Rooms released.`
     });
 
     await Notification.create({
-      user: booking.petOwner,
-      message: "Your booking has been cancelled successfully."
+      user: booking.petOwner._id,
+      message: "Your booking has been cancelled successfully. Rooms released."
     });
     
-    console.log(" Booking cancelled:", booking._id);
+    console.log("❌ Booking cancelled:", booking._id);
     
-    res.json({ message: "Booking cancelled successfully" });
+    res.json({ message: "Booking cancelled successfully. Rooms released." });
   } catch (error) {
-    console.error("Cancellation failed:", error);
+    console.error("❌ Cancellation failed:", error);
     res.status(500).json({ message: "Cancellation failed" });
   }
 };
 
+// GET BOOKING DETAILS
 exports.getBookingDetails = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
@@ -996,10 +1133,12 @@ exports.getBookingDetails = async (req, res) => {
 
     res.json(booking);
   } catch (error) {
+    console.error("❌ Failed to fetch booking details:", error);
     res.status(500).json({ message: "Failed to fetch booking details" });
   }
 };
 
+// MARK CASH AS PAID
 exports.markCashAsPaid = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -1018,19 +1157,22 @@ exports.markCashAsPaid = async (req, res) => {
 
     await Notification.create({
       user: booking.petOwner,
-      message: "Your cash payment has been marked as paid."
+      message: "Your pending payment has been marked as paid."
     });
+
+    console.log("✅ Cash payment marked as paid:", booking._id);
 
     res.json({ success: true, message: "Payment marked as paid", booking });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Failed to mark cash as paid:", err);
     res.status(500).json({ message: "Failed to mark payment as paid", error: err.message });
   }
 };
 
+// ✅ COMPLETE BOOKING AND RELEASE ROOMS
 exports.completeBooking = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(req.params.id).populate('shelter');
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -1044,17 +1186,45 @@ exports.completeBooking = async (req, res) => {
     booking.checkOutDate = new Date();
     await booking.save();
 
+    // ✅ RELEASE ROOMS AFTER CHECKOUT
+    if (booking.roomAssignments && booking.roomAssignments.length > 0) {
+      const shelter = await Shelter.findById(booking.shelter._id);
+      if (shelter) {
+        const bookedRoomNumbers = booking.roomAssignments.map(r => r.roomNumber);
+        
+        for (const roomNum of bookedRoomNumbers) {
+          const room = shelter.rooms.find(r => r.roomNumber === roomNum);
+          if (room && room.bookedPet?.petId?.toString() === booking._id.toString()) {
+            room.status = "available";
+            room.bookedPet = undefined;
+          }
+        }
+
+        const availableRooms = shelter.rooms.filter(r => r.status === "available");
+        if (availableRooms.length > 0 && shelter.status === "unavailable") {
+          shelter.status = "available";
+        }
+
+        await shelter.save();
+        console.log(`✅ Released rooms after checkout: ${bookedRoomNumbers.join(", ")}`);
+      }
+    }
+
     await Notification.create({
       user: booking.petOwner,
       message: "Your booking has been completed. Thank you!"
-    });    
+    });
+
+    console.log("✅ Booking completed:", booking._id);
     
-    res.json({ message: "Booking marked as completed", booking });
+    res.json({ message: "Booking completed successfully. Rooms released.", booking });
   } catch (error) {
+    console.error("❌ Failed to complete booking:", error);
     res.status(500).json({ message: "Failed to complete booking" });
   }
 };
-// Get booking history for pet owner
+
+// GET BOOKING HISTORY
 exports.getBookingHistory = async (req, res) => {
   try {
     const bookings = await Booking.find({ petOwner: req.user.id })
@@ -1065,7 +1235,7 @@ exports.getBookingHistory = async (req, res) => {
 
     const history = bookings.map((booking) => {
       const createdAt = new Date(booking.createdAt);
-      const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60); // difference in hours
+      const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60);
       const canCancel = hoursSinceBooking <= 24 && booking.payment.status !== "paid" && booking.bookingStatus !== "cancelled";
 
       return {
@@ -1076,7 +1246,7 @@ exports.getBookingHistory = async (req, res) => {
 
     res.status(200).json({ success: true, bookings: history });
   } catch (error) {
-    console.error("Failed to fetch booking history:", error);
+    console.error("❌ Failed to fetch booking history:", error);
     res.status(500).json({ message: "Failed to fetch booking history" });
   }
 };

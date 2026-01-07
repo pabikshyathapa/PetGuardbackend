@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../../middlewares/upload");
 const { authenticateUser, authorizeRoles } = require("../../middlewares/authorizedUser");
-const { createOrUpdateShelter, getMyShelter, getAllShelters, getShelterById } = require("../../controllers/Shelter/controllerShelter");
+const { createOrUpdateShelter, getMyShelter, getAllShelters, getShelterById, bookRoom} = require("../../controllers/Shelter/controllerShelter");
 const {searchShelters}=require("../../controllers/searchController")
 // For multiple file uploads
 router.post(
@@ -21,7 +21,6 @@ router.get("/me", authenticateUser, authorizeRoles("shelter"), getMyShelter);
 router.get("/", getAllShelters);
 router.get("/search", searchShelters);
 router.get("/:id", getShelterById);
-
-
+router.post("/book-room",authenticateUser,authorizeRoles("petowner"),bookRoom);
 module.exports = router;
 
