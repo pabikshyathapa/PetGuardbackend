@@ -145,7 +145,7 @@ const bookingSchema = new mongoose.Schema(
       transactionId: String,
       paidAt: Date,
     },
-    // ✅ ADD ROOM ASSIGNMENTS
+    //  ADD ROOM ASSIGNMENTS
     roomAssignments: [{
       roomNumber: { type: Number, required: true },
       petName: { type: String, required: true },
