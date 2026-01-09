@@ -94,7 +94,7 @@ const bookedPetSchema = new mongoose.Schema(
       phone: String,
     },
     photo: String,
-    roomNumber: { type: Number, required: true }, // ✅ ADD ROOM NUMBER FOR EACH PET
+    roomNumber: { type: Number, required: true }, // ADD ROOM NUMBER FOR EACH PET
   },
   { _id: false }
 );
